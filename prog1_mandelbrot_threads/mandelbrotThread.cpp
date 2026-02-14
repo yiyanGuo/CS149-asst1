@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <thread>
+#include <cstdlib>
 
 #include "CycleTimer.h"
 
@@ -22,6 +23,12 @@ extern void mandelbrotSerial(
     int maxIterations,
     int output[]);
 
+extern void mandelbrotSerialWorkloadOpt(
+    float x0, float y0, float x1, float y1,
+    int width, int height,
+    int startRow, int stepRow,
+    int maxIterations,
+    int output[]);
 
 //
 // workerThreadStart --
@@ -35,7 +42,38 @@ void workerThreadStart(WorkerArgs * const args) {
     // program that uses two threads, thread 0 could compute the top
     // half of the image and thread 1 could compute the bottom half.
 
-    printf("Hello world from thread %d\n", args->threadId);
+    // printf("Hello world from thread %d\n", args->threadId);
+    double startTime = CycleTimer::currentSeconds();
+
+    int startRow_thread = (args->height / args->numThreads) * args->threadId;
+    int totalRows_thread = (args->height / args->numThreads);
+    totalRows_thread = (args->threadId == args->numThreads - 1) ? (args->height - startRow_thread) : totalRows_thread;
+
+    mandelbrotSerial(
+        args->x0, args->y0, args->x1, args->y1,
+        args->width, args->height,
+        startRow_thread, totalRows_thread,
+        args->maxIterations,
+        args->output
+    );
+
+    double endTime = CycleTimer::currentSeconds();
+    printf("Thread %d finished in %.3f ms\n", args->threadId, (endTime - startTime) * 1000);
+    // printf("Thread %d finished\n", args->threadId);
+}
+
+void workerThreadStartOpt(WorkerArgs * const args) {
+
+    int startRow_thread = args->threadId;
+    int stepRow_thread = args->numThreads;
+
+    mandelbrotSerialWorkloadOpt(
+        args->x0, args->y0, args->x1, args->y1,
+        args->width, args->height,
+        startRow_thread, stepRow_thread,
+        args->maxIterations,
+        args->output
+    );
 }
 
 //
@@ -83,10 +121,10 @@ void mandelbrotThread(
     // are created and the main application thread is used as a worker
     // as well.
     for (int i=1; i<numThreads; i++) {
-        workers[i] = std::thread(workerThreadStart, &args[i]);
+        workers[i] = std::thread(workerThreadStartOpt, &args[i]);
     }
     
-    workerThreadStart(&args[0]);
+    workerThreadStartOpt(&args[0]);
 
     // join worker threads
     for (int i=1; i<numThreads; i++) {

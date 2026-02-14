@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <getopt.h>
+#include <cstring>
 
 #include "CycleTimer.h"
 
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
     const unsigned int width = 1600;
     const unsigned int height = 1200;
     const int maxIterations = 256;
-    int numThreads = 2;
+    int numThreads = 32;
 
     float x0 = -2;
     float x1 = 1;
