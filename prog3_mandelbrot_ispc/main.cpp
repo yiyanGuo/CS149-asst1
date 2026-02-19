@@ -80,21 +80,23 @@ int main(int argc, char** argv) {
     float y0 = -1;
     float y1 = 1;
 
+    int numTasks = 32;
     bool useTasks = false;
 
     // parse commandline options ////////////////////////////////////////////
     int opt;
     static struct option long_options[] = {
-        {"tasks", 0, 0, 't'},
+        {"tasks", 1, 0, 't'},
         {"view",  1, 0, 'v'},
         {"help",  0, 0, '?'},
         {0 ,0, 0, 0}
     };
 
-    while ((opt = getopt_long(argc, argv, "tv:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "t:v:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 't':
+            numTasks = atoi(optarg);
             useTasks = true;
             break;
         case 'v':
@@ -183,7 +185,7 @@ int main(int argc, char** argv) {
         //
         for (int i = 0; i < 3; ++i) {
             double startTime = CycleTimer::currentSeconds();
-            mandelbrot_ispc_withtasks(x0, y0, x1, y1, width, height, maxIterations, output_ispc_tasks);
+            mandelbrot_ispc_withtasks(x0, y0, x1, y1, width, height, maxIterations, output_ispc_tasks, numTasks);
             double endTime = CycleTimer::currentSeconds();
             minTaskISPC = std::min(minTaskISPC, endTime - startTime);
         }

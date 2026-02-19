@@ -1,3 +1,5 @@
 *.o
 *.ppm
 mandelbrot
+myexp
+mandelbrot_ispc

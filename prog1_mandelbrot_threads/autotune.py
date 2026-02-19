@@ -34,7 +34,7 @@ def run_program(threads_list: list[int]):
     return results
 
 if __name__ == "__main__":
-    threads_list = range(1, 32)
+    threads_list = range(1, 48)
     results = run_program(threads_list)
     if results:
         threads, simple_speedups, opt_speedup = zip(*results)
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         plt.ylabel('Speedup')
         plt.title('Mandelbrot Speedup vs Number of Threads')
         plt.grid(True)
-        plt.savefig("speedup_plot.png")
+        plt.savefig("speedup_plot_48.png")
         plt.close()
     else:
         print("No results to plot.")

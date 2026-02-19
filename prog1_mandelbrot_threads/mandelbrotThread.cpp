@@ -87,7 +87,7 @@ void mandelbrotThread(
     int width, int height,
     int maxIterations, int output[], bool optimized = false)
 {
-    static constexpr int MAX_THREADS = 32;
+    static constexpr int MAX_THREADS = 64;
 
     if (numThreads > MAX_THREADS)
     {
