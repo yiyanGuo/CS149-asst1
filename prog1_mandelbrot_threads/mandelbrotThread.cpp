@@ -43,7 +43,7 @@ void workerThreadStart(WorkerArgs * const args) {
     // half of the image and thread 1 could compute the bottom half.
 
     // printf("Hello world from thread %d\n", args->threadId);
-    double startTime = CycleTimer::currentSeconds();
+    // double startTime = CycleTimer::currentSeconds();
 
     int startRow_thread = (args->height / args->numThreads) * args->threadId;
     int totalRows_thread = (args->height / args->numThreads);
@@ -57,8 +57,8 @@ void workerThreadStart(WorkerArgs * const args) {
         args->output
     );
 
-    double endTime = CycleTimer::currentSeconds();
-    printf("Thread %d finished in %.3f ms\n", args->threadId, (endTime - startTime) * 1000);
+    // double endTime = CycleTimer::currentSeconds();
+    // printf("Thread %d finished in %.3f ms\n", args->threadId, (endTime - startTime) * 1000);
     // printf("Thread %d finished\n", args->threadId);
 }
 
@@ -85,7 +85,7 @@ void mandelbrotThread(
     int numThreads,
     float x0, float y0, float x1, float y1,
     int width, int height,
-    int maxIterations, int output[])
+    int maxIterations, int output[], bool optimized = false)
 {
     static constexpr int MAX_THREADS = 32;
 
@@ -121,10 +121,17 @@ void mandelbrotThread(
     // are created and the main application thread is used as a worker
     // as well.
     for (int i=1; i<numThreads; i++) {
-        workers[i] = std::thread(workerThreadStartOpt, &args[i]);
+        if (optimized) {
+            workers[i] = std::thread(workerThreadStartOpt, &args[i]);
+        } else {
+            workers[i] = std::thread(workerThreadStart, &args[i]);
+        }
     }
-    
-    workerThreadStartOpt(&args[0]);
+    if(optimized) {
+        workerThreadStartOpt(&args[0]);
+    } else {
+        workerThreadStart(&args[0]);
+    }
 
     // join worker threads
     for (int i=1; i<numThreads; i++) {

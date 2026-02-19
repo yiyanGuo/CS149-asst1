@@ -17,7 +17,7 @@ extern void mandelbrotThread(
     float x0, float y0, float x1, float y1,
     int width, int height,
     int maxIterations,
-    int output[]);
+    int output[], bool optimized = false);
 
 extern void writePPMImage(
     int* data,
@@ -79,16 +79,19 @@ int main(int argc, char** argv) {
     float y0 = -1;
     float y1 = 1;
 
+    bool optimized = false;
+
     // parse commandline options ////////////////////////////////////////////
     int opt;
     static struct option long_options[] = {
         {"threads", 1, 0, 't'},
         {"view", 1, 0, 'v'},
         {"help", 0, 0, '?'},
+        {"balance", 0, 0, 'b'},
         {0 ,0, 0, 0}
     };
 
-    while ((opt = getopt_long(argc, argv, "t:v:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "t:v:?:b", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 't':
@@ -109,6 +112,11 @@ int main(int argc, char** argv) {
                 fprintf(stderr, "Invalid view index\n");
                 return 1;
             }
+            break;
+        }
+        case 'b':
+        {
+            optimized = true;
             break;
         }
         case '?':
@@ -145,15 +153,16 @@ int main(int argc, char** argv) {
     //
 
     double minThread = 1e30;
+
     for (int i = 0; i < 5; ++i) {
       memset(output_thread, 0, width * height * sizeof(int));
         double startTime = CycleTimer::currentSeconds();
-        mandelbrotThread(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread);
+        mandelbrotThread(numThreads, x0, y0, x1, y1, width, height, maxIterations, output_thread, optimized);
         double endTime = CycleTimer::currentSeconds();
         minThread = std::min(minThread, endTime - startTime);
     }
 
-    printf("[mandelbrot thread]:\t\t[%.3f] ms\n", minThread * 1000);
+    printf("[mandelbrot thread workload optmized]:\t\t[%.3f] ms\n", minThread * 1000);
     writePPMImage(output_thread, width, height, "mandelbrot-thread.ppm", maxIterations);
 
     if (! verifyResult (output_serial, output_thread, width, height)) {
